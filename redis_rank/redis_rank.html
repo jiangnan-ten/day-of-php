@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+	.people{display: inline-block;width:100px;height:20px;border: 1px solid black}
+	ul,li{list-style: none;}
+	</style>
+</head>
+<body>
+	<a class="people" data-id=1>jam</a>
+	<a class="people" data-id=2>jack</a>
+	<a class="people" data-id=3>tom</a>
+	<a class="people" data-id=4>linda</a>
+	<a class="people" data-id=5>ten</a>
+	<a class="people" data-id=6>jj</a>
+	<a class="people" data-id=7>jackson</a>
+	<a class="people" data-id=8>luo</a>
+	<a class="people" data-id=9>me</a>
+	<a class="people" data-id=10>halen</a>
+
+	<div id="rank">
+		<p>排行榜</p>
+		<div class="rank">
+		</div>
+	</div>
+
+	<div id="container"></div>
+
+	<script type="text/javascript" src="http://ten_lib.com/jquery.1.11.1.min.js"></script>
+	<script type="text/javascript" src="http://ten_lib.com/highcharts/highcharts.js"></script>
+	<script type="text/javascript" src="http://ten_lib.com/highcharts/highcharts-3d.js"></script>
+	<script type="text/javascript" src="http://ten_lib.com/highcharts/exporting.js"></script>
+
+	<script type="text/javascript">
+		var chart = new Highcharts.Chart({
+	        chart: {
+	            renderTo: 'container',
+	            type: 'column',
+	            margin: 75,
+	            options3d: {
+	                enabled: true,
+	                alpha: 15,
+	                beta: 15,
+	                depth: 50,
+	                viewDistance: 25
+	            }
+	        },
+	        title: {
+	            text: 'redis rank'
+	        },
+	        plotOptions: {
+	            column: {
+	                depth: 50
+	            }
+	        },
+	        xAxis: {
+	            categories: ['jam', 'jack', 'tom', 'linda', 'ten', 'jj', 'jackson', 'luo', 'me', 'helen'],
+	        },
+	        yAxis: {
+	            title: {
+	                text: '投票数'
+	            }
+	        },
+	        series: [{
+	            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	        }]
+	    });
+
+		$('.people').click(function() {
+			var id = $(this).data('id');
+			var name = $(this).text();
+			var y = chart.series[0].data[id-1].y;
+
+			$.get('./redis_rank.php?id='+id+'&name='+name, function(res) {
+				if(res) {
+					var html = '<ul>';
+					for (var i in res) {
+						html += '<li>' + i + ':' + res[i];
+						html += '</li>';
+					}
+					html += '</ul>';
+
+					$('.rank').html(html);
+					chart.series[0].data[id-1].update(y += 1);
+				}
+			}, 'json');
+		});
+
+		$.get('./redis_rank.php', function(res) {
+			if(res) {
+				var html = '<ul>';
+				var id = 0;
+				for (var i in res) {
+					html += '<li>' + i + ':' + res[i];
+					html += '</li>';
+					chart.series[0].data[id].update(y = res[i]);
+					id = id + 1;
+				}
+				html += '</ul>';
+				$('.rank').html(html);
+			}
+		}, 'json');
+	</script>
+</body>
+</html>
